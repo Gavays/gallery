@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Портфолио веб-проектов: лендинги, интернет-магазин, сайт-визитка и мобильное приложение. Живые превью работ." />
+<title>Портфолио — избранные проекты</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   Portfolio gallery — tokens
+   ============================================================ */
+:root{
+  --bg:#0B0B0F;
+  --surface:#131319;
+  --card:#15151C;
+  --text:#F2F2F4;
+  --muted:#8B8B96;
+  --line:rgba(255,255,255,.09);
+  --accent:#3EE8B5;
+  --accent-2:#8ab4ff;
+  --accent-3:#a78bfa;
+  --glow:rgba(62,232,181,.35);
+  --maxw:1180px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:#0B0B0F}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:linear-gradient(var(--accent),var(--accent-3));border-radius:10px}
+.mono{font-family:var(--mono)}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+/* ============================================================
+   Animated background — aurora + grid
+   ============================================================ */
+.bg{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+.bg .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform}
+.bg .b1{width:620px;height:620px;background:radial-gradient(circle,rgba(62,232,181,.55),transparent 68%);top:-180px;left:-140px;animation:drift1 26s ease-in-out infinite}
+.bg .b2{width:560px;height:560px;background:radial-gradient(circle,rgba(138,180,255,.45),transparent 68%);top:12%;right:-160px;animation:drift2 32s ease-in-out infinite}
+.bg .b3{width:600px;height:600px;background:radial-gradient(circle,rgba(167,139,250,.4),transparent 68%);bottom:-220px;left:28%;animation:drift3 30s ease-in-out infinite}
+@keyframes drift1{50%{transform:translate(120px,90px) scale(1.15)}}
+@keyframes drift2{50%{transform:translate(-100px,120px) scale(1.1)}}
+@keyframes drift3{50%{transform:translate(80px,-90px) scale(1.2)}}
+.bg .grid{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:56px 56px;
+  -webkit-mask:radial-gradient(circle at 50% 0%,#000,transparent 75%);mask:radial-gradient(circle at 50% 0%,#000,transparent 75%)}
+
+/* ============================================================
+   Scroll progress + custom cursor
+   ============================================================ */
+#progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:100;background:linear-gradient(90deg,var(--accent),var(--accent-3));box-shadow:0 0 12px var(--glow)}
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;opacity:0;transition:opacity .3s}
+.cursor-dot{width:6px;height:6px;background:var(--accent);margin:-3px 0 0 -3px}
+.cursor-ring{width:34px;height:34px;border:1.5px solid rgba(62,232,181,.6);margin:-17px 0 0 -17px;transition:width .25s var(--ease),height .25s var(--ease),margin .25s var(--ease),background .25s,opacity .3s,border-color .25s}
+body.has-cursor.ready .cursor-dot,body.has-cursor.ready .cursor-ring{opacity:1}
+body.has-cursor.hovering .cursor-ring{width:56px;height:56px;margin:-28px 0 0 -28px;background:rgba(62,232,181,.08);border-color:var(--accent)}
+@media(hover:hover) and (pointer:fine){body.has-cursor,body.has-cursor a,body.has-cursor button{cursor:none}}
+
+/* ============================================================
+   Header
+   ============================================================ */
+header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(11,11,15,.55);border-bottom:1px solid transparent;transition:border-color .3s,background .3s}
+header.scrolled{border-bottom-color:var(--line);background:rgba(11,11,15,.72)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:70px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px;letter-spacing:-.01em}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 2.4s infinite}
+.nav-cta{font-family:var(--sans);font-size:13.5px;color:var(--bg)!important;background:var(--accent);padding:9px 18px;border-radius:8px;font-weight:600;transition:transform .2s var(--ease),box-shadow .3s;will-change:transform}
+.nav-cta:hover{box-shadow:0 8px 24px var(--glow)}
+
+/* ============================================================
+   Hero
+   ============================================================ */
+@keyframes pulse{50%{opacity:.4}}
+.hero{position:relative;padding:104px 0 48px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12.5px;color:var(--accent);border:1px solid var(--line);padding:7px 16px;border-radius:100px;margin-bottom:28px;background:rgba(255,255,255,.02);letter-spacing:.06em;text-transform:uppercase}
+.hero h1{font-size:clamp(40px,7vw,84px);font-weight:900;letter-spacing:-.04em;line-height:1.02;margin:0 auto;max-width:14ch}
+.g{background:linear-gradient(100deg,var(--accent),var(--accent-2),var(--accent-3),var(--accent));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradShift 8s linear infinite}
+@keyframes gradShift{to{background-position:300% 0}}
+.hero p{color:var(--muted);font-size:clamp(15px,1.9vw,18px);max-width:560px;margin:26px auto 0}
+.hero-meta{display:inline-flex;gap:34px;flex-wrap:wrap;justify-content:center;margin-top:40px;padding-top:30px;border-top:1px solid var(--line)}
+.hero-meta .m b{font-size:clamp(22px,3vw,28px);font-weight:800;display:block;font-family:var(--mono);background:linear-gradient(120deg,var(--text),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-meta .m span{font-size:13px;color:var(--muted)}
+
+/* ============================================================
+   Gallery
+   ============================================================ */
+.gallery{padding:32px 0 40px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.card-wrap{perspective:1000px}
+.card{display:block;position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--ty,0px));transform-style:preserve-3d;
+  transition:border-color .4s,box-shadow .5s var(--ease),transform .3s var(--ease)}
+.card.tilting{transition:border-color .4s,box-shadow .5s var(--ease),transform .1s linear}
+.card:hover{border-color:rgba(62,232,181,.4);box-shadow:0 30px 70px rgba(0,0,0,.55)}
+.card::after{content:"";position:absolute;inset:0;z-index:4;opacity:0;transition:opacity .4s;pointer-events:none;
+  background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(62,232,181,.12),transparent 65%)}
+.card:hover::after{opacity:1}
+.thumb{position:relative;aspect-ratio:16/10;overflow:hidden;background:linear-gradient(135deg,#1a1a22,#0e0e14)}
+.thumb iframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;transform-origin:top left;pointer-events:none;opacity:0;transition:opacity .8s var(--ease)}
+.thumb iframe.ready{opacity:1}
+.thumb .load{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.thumb .load i{width:22px;height:22px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.thumb .open{position:absolute;top:14px;right:14px;z-index:3;font-family:var(--mono);font-size:12px;color:#0B0B0F;background:var(--accent);padding:7px 13px;border-radius:8px;opacity:0;transform:translateY(-6px);transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.card:hover .thumb .open{opacity:1;transform:none}
+.thumb::after{content:"";position:absolute;inset:0;z-index:2;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.cmeta{padding:24px 26px 28px;position:relative}
+.cnum{position:absolute;top:24px;right:26px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.cmeta h3{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.cmeta .role{font-family:var(--mono);font-size:12px;color:var(--accent);margin:6px 0 12px}
+.cmeta p{color:var(--muted);font-size:14.5px;max-width:44ch}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;list-style:none}
+.tags li{font-family:var(--mono);font-size:11.5px;color:var(--muted);border:1px solid var(--line);padding:5px 10px;border-radius:6px;transition:color .25s,border-color .25s}
+.card:hover .tags li{border-color:rgba(255,255,255,.16)}
+.tags li.cat{color:#0B0B0F;background:var(--accent);border-color:var(--accent);font-weight:600}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+footer{padding:46px 0;border-top:1px solid var(--line);margin-top:40px}
+.fbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13.5px}
+.fbar a{color:var(--muted);transition:color .25s}
+.fbar a:hover{color:var(--accent)}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal[data-d="1"]{transition-delay:.08s}.reveal[data-d="2"]{transition-delay:.16s}.reveal[data-d="3"]{transition-delay:.24s}
+
+@media(max-width:860px){
+  .grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .hero{padding:70px 0 40px}
+  .hero-meta{gap:22px}
+  .thumb .open{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.15s!important}
+  .bg{display:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- animated background -->
+<div class="bg" aria-hidden="true">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="grid"></div>
+</div>
+<div id="progress"></div>
+<div class="cursor-ring"></div><div class="cursor-dot"></div>
+
+<!-- ===================== HEADER ===================== -->
+<header id="header">
+  <div class="wrap nav">
+    <a href="#top" class="brand"><span class="dot"></span>Портфолио</a>
+    <a href="https://t.me/Gavays" target="_blank" rel="noopener" class="nav-cta" data-magnet>Связаться</a>
+  </div>
+</header>
+
+<main>
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow reveal">Избранные работы</div>
+    <h1 class="reveal" data-d="1">Проекты, которые<br><span class="g">говорят за себя</span></h1>
+    <p class="reveal" data-d="2">Наведите на карточку — увидите живое превью прямо на странице. Клик открывает проект целиком в новой вкладке.</p>
+    <div class="hero-meta reveal" data-d="3">
+      <div class="m"><b>5</b><span>готовых проектов</span></div>
+      <div class="m"><b>100%</b><span>адаптив под телефоны</span></div>
+      <div class="m"><b>∞</b><span>внимания к деталям</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== GALLERY ===================== -->
+<section class="gallery" id="work">
+  <div class="wrap">
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap fbar">
+    <span>© 2026 Gavays — веб и мобильная разработка</span>
+    <span class="mono"><a href="https://t.me/Gavays" target="_blank" rel="noopener">Telegram</a> · <a href="mailto:lucegor13@gmail.com">lucegor13@gmail.com</a></span>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Portfolio gallery — logic
+   ============================================================ */
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ---- projects ---- */
+const projects=[
+  {num:'01',title:'EMBER',cat:'Интернет-магазин',role:'Обжарщики кофе · e-commerce',file:'ember-roastery.html',
+   desc:'Магазин кофе под ключ: каталог, рабочая корзина, оформление заказа, интерактивный гид по завариванию. Тёплый фирменный стиль.',
+   tags:['Корзина + заказ','Каталог','Адаптив','Анимации']},
+  {num:'02',title:'NIBBLE',cat:'Мобильное приложение',role:'Доставка еды · UI-концепт',file:'mobile-app.html',
+   desc:'Интерактивный прототип приложения доставки: категории, карточки блюд, корзина с подсчётом, оформление заказа. Навигация как в реальном приложении.',
+   tags:['iOS / Android','PWA','Корзина','Прототип']},
+  {num:'03',title:'NEXORA',cat:'Лендинг',role:'Промо-сайт · SaaS',file:'nexora.html',
+   desc:'Премиальный продающий лендинг: анимированный дашборд, счётчики, частицы, микровзаимодействия и секции с плавным появлением.',
+   tags:['Landing','Анимация','Дашборд','Формы']},
+  {num:'04',title:'OBSIDIAN HOUSE',cat:'Сайт-визитка',role:'Архитектурное бюро · премиум',file:'obsidian-house.html',
+   desc:'Имиджевый сайт-визитка: фоновое видео, кастомный курсор, разделы об услугах и проектах, форма заявки. Дорогая кинематографичная подача.',
+   tags:['Визитка','Видео-фон','Форма','Кейсы']},
+  {num:'05',title:'ORBITAL OS',cat:'Лендинг',role:'Промо-сайт продукта',file:'orbital-os.html',
+   desc:'Технологичный лендинг с анимированным hero, тарифами, таймлайном и отзывами. Демонстрирует сложную анимацию на чистом коде.',
+   tags:['Landing','Тарифы','SVG-анимация','Отзывы']},
+];
+$('#grid').innerHTML=projects.map((p,i)=>`
+  <div class="card-wrap reveal" data-d="${i%2}">
+    <a class="card" href="./${p.file}" target="_blank" rel="noopener">
+      <div class="thumb">
+        <div class="load"><i></i></div>
+        <iframe data-src="./${p.file}" title="${p.title}" tabindex="-1" aria-hidden="true" scrolling="no" loading="lazy"></iframe>
+        <span class="open">Открыть ↗</span>
+      </div>
+      <div class="cmeta">
+        <div class="cnum">${p.num}</div>
+        <h3>${p.title}</h3>
+        <div class="role">${p.role}</div>
+        <p>${p.desc}</p>
+        <ul class="tags"><li class="cat">${p.cat}</li>${p.tags.map(t=>`<li>${t}</li>`).join('')}</ul>
+      </div>
+    </a>
+  </div>`).join('');
+
+/* ---- iframe previews: scale + lazy load ---- */
+const DESIGN_W=1280;
+function scaleThumbs(){ $$('.thumb').forEach(t=>{ const f=t.querySelector('iframe'); if(f) f.style.transform='scale('+(t.clientWidth/DESIGN_W)+')'; }); }
+addEventListener('resize',scaleThumbs);
+const io=new IntersectionObserver((es)=>es.forEach(e=>{
+  if(e.isIntersecting){
+    const f=e.target.querySelector('iframe[data-src]');
+    if(f){
+      f.addEventListener('load',()=>{ f.classList.add('ready'); const l=e.target.querySelector('.load'); if(l) l.style.display='none'; scaleThumbs(); });
+      f.src=f.dataset.src; f.removeAttribute('data-src');
+    }
+    io.unobserve(e.target);
+  }
+}),{rootMargin:'300px'});
+$$('.thumb').forEach(t=>io.observe(t));
+scaleThumbs();
+
+/* ---- scroll progress ---- */
+const prog=$('#progress');
+function onScroll(){
+  $('#header').classList.toggle('scrolled',scrollY>10);
+  const h=document.documentElement.scrollHeight-innerHeight;
+  prog.style.width=(h>0?(scrollY/h*100):0)+'%';
+}
+addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+/* ---- reveal on scroll ---- */
+const rio=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); rio.unobserve(e.target); }}),{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+$$('.reveal').forEach(el=>rio.observe(el));
+
+/* ---- smooth anchors ---- */
+$$('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
+  const id=a.getAttribute('href'); if(id.length<2) return;
+  const t=document.querySelector(id); if(!t) return;
+  e.preventDefault(); scrollTo({top:t.getBoundingClientRect().top+scrollY-70,behavior:reduce?'auto':'smooth'});
+}));
+
+/* ---- fine-pointer only: cursor, magnet, tilt, spotlight ---- */
+const fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+if(fine && !reduce){
+  document.body.classList.add('has-cursor');
+  const dot=$('.cursor-dot'), ring=$('.cursor-ring');
+  let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+  addEventListener('mousemove',e=>{ mx=e.clientX;my=e.clientY; dot.style.transform=`translate(${mx}px,${my}px)`; document.body.classList.add('ready'); });
+  (function loop(){ rx+=(mx-rx)*.18; ry+=(my-ry)*.18; ring.style.transform=`translate(${rx}px,${ry}px)`; requestAnimationFrame(loop); })();
+  const hoverSel='a,button,.card,[data-magnet]';
+  document.addEventListener('mouseover',e=>{ if(e.target.closest(hoverSel)) document.body.classList.add('hovering'); });
+  document.addEventListener('mouseout',e=>{ if(e.target.closest(hoverSel)) document.body.classList.remove('hovering'); });
+
+  /* magnetic buttons */
+  $$('[data-magnet]').forEach(el=>{
+    el.addEventListener('mousemove',e=>{ const r=el.getBoundingClientRect(); const x=e.clientX-r.left-r.width/2, y=e.clientY-r.top-r.height/2; el.style.transform=`translate(${x*.28}px,${y*.42}px)`; });
+    el.addEventListener('mouseleave',()=>{ el.style.transform=''; });
+  });
+
+  /* 3D tilt + spotlight for project cards */
+  $$('.card').forEach(card=>{
+    const MAX=6;
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      card.classList.add('tilting');
+      card.style.setProperty('--ry',((px-.5)*MAX*2).toFixed(2)+'deg');
+      card.style.setProperty('--rx',(-(py-.5)*MAX*2).toFixed(2)+'deg');
+      card.style.setProperty('--ty','-6px');
+      card.style.setProperty('--mx',(px*100)+'%');
+      card.style.setProperty('--my',(py*100)+'%');
+    });
+    card.addEventListener('mouseleave',()=>{
+      card.classList.remove('tilting');
+      card.style.setProperty('--ry','0deg'); card.style.setProperty('--rx','0deg'); card.style.setProperty('--ty','0px');
+    });
+  });
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="EMBER — обжарщики specialty-кофе. Small batch, single origin, обжарка каждое утро." />
+<title>EMBER — Обжарщики кофе</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   EMBER — Design tokens
+   ============================================================ */
+:root{
+  --paper:#F4EBDD;        /* фон-бумага */
+  --paper-2:#EDE1CF;      /* карточки */
+  --espresso:#2A1A11;     /* основной тёмный */
+  --ink:#3B2A1E;          /* текст */
+  --rust:#BE562B;         /* акцент терракота */
+  --caramel:#C98A3E;      /* тёплый золотой */
+  --sage:#6E6B4A;         /* оливковый */
+  --cream:#FBF6EE;
+  --muted:#8A7358;
+  --line:rgba(42,26,17,.14);
+  --line-soft:rgba(42,26,17,.08);
+  --maxw:1180px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);background:var(--paper);color:var(--ink);
+  overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+body.lock{overflow:hidden;height:100vh}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+img,svg{display:block;max-width:100%}
+::selection{background:var(--rust);color:var(--cream)}
+h1,h2,h3,h4,.serif{font-family:var(--serif)}
+::-webkit-scrollbar{width:11px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:var(--espresso);border-radius:0}
+
+/* grain + warm light */
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+.warmth{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(50% 40% at 78% 8%,rgba(201,138,62,.28),transparent 60%),
+    radial-gradient(45% 45% at 12% 88%,rgba(190,86,43,.14),transparent 60%)}
+
+/* progress line */
+#bar{position:fixed;top:0;left:0;height:3px;width:0;z-index:1000;background:var(--rust)}
+
+/* ============================================================
+   Loader
+   ============================================================ */
+#loader{position:fixed;inset:0;z-index:9999;background:var(--espresso);color:var(--cream);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  transition:opacity .8s var(--ease),visibility .8s}
+#loader.done{opacity:0;visibility:hidden;pointer-events:none}
+.cup{position:relative;width:76px;height:64px}
+.cup .body{position:absolute;bottom:0;left:6px;width:56px;height:44px;border:3px solid var(--cream);border-radius:0 0 16px 16px}
+.cup .handle{position:absolute;left:59px;top:31px;width:16px;height:20px;border:3px solid var(--cream);border-left:none;border-radius:0 13px 13px 0}
+.cup .fill{position:absolute;bottom:3px;left:9px;width:50px;background:linear-gradient(var(--caramel),var(--rust));border-radius:0 0 12px 12px;height:0;transition:height .5s var(--ease)}
+.cup .steam{position:absolute;top:-20px;left:34px;transform:translateX(-50%);display:flex;gap:8px}
+.cup .steam i{width:3px;height:20px;background:rgba(251,246,238,.6);border-radius:3px;animation:steam 1.6s ease-in-out infinite}
+.cup .steam i:nth-child(2){animation-delay:.3s}.cup .steam i:nth-child(3){animation-delay:.6s}
+@keyframes steam{0%{opacity:0;transform:translateY(6px) scaleY(.6)}40%{opacity:.8}100%{opacity:0;transform:translateY(-10px) scaleY(1.2)}}
+.l-word{font-family:var(--serif);font-size:15px;letter-spacing:.02em;min-height:22px}
+.l-word b{font-weight:600}
+.l-count{font-family:var(--serif);font-size:44px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;position:relative;z-index:2}
+section{position:relative;padding:120px 0}
+.kicker{display:inline-flex;align-items:center;gap:10px;font-family:var(--sans);font-size:12px;font-weight:600;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--rust)}
+.kicker::before{content:"";width:26px;height:1px;background:var(--rust)}
+.head{max-width:640px;margin-bottom:56px}
+.head.center{margin-left:auto;margin-right:auto;text-align:center}
+.head.center .kicker::before{display:none}
+.head h2{font-size:clamp(34px,5vw,60px);font-weight:600;line-height:1.02;letter-spacing:-.02em;margin-top:20px}
+.head h2 em{font-style:italic;color:var(--rust)}
+.head p{color:var(--muted);font-size:18px;margin-top:18px}
+
+.btn{position:relative;display:inline-flex;align-items:center;gap:10px;font-family:var(--sans);font-weight:600;font-size:15px;
+  padding:15px 28px;border-radius:100px;transition:transform .35s var(--ease),background .3s,color .3s;overflow:hidden;white-space:nowrap}
+.btn-solid{background:var(--espresso);color:var(--cream)}
+.btn-solid:hover{background:var(--rust)}
+.btn-out{border:1.5px solid var(--espresso);color:var(--espresso)}
+.btn-out:hover{background:var(--espresso);color:var(--cream)}
+.btn .arr{transition:transform .35s var(--ease)}
+.btn:hover .arr{transform:translateX(4px)}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);transform:translate(-50%,-50%) scale(0);animation:rip .6s ease-out;pointer-events:none}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(18);opacity:0}}
+
+/* ============================================================
+   Header
+   ============================================================ */
+header{position:fixed;top:0;left:0;right:0;z-index:900;padding:20px 0;transition:padding .35s var(--ease),background .35s,box-shadow .35s}
+header.scrolled{padding:12px 0;background:rgba(244,235,221,.85);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line-soft)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:22px}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--serif);font-weight:600;font-size:23px;letter-spacing:.02em}
+.brand .seal{width:36px;height:36px;border-radius:50%;background:var(--espresso);color:var(--cream);display:grid;place-items:center;font-size:16px}
+.brand .seal svg{width:20px;height:20px}
+.menu{display:flex;align-items:center;gap:6px}
+.menu a{color:var(--ink);font-size:14.5px;font-weight:500;padding:9px 14px;border-radius:100px;transition:background .25s,color .25s;position:relative}
+.menu a:hover{color:var(--rust)}
+.nav-right{display:flex;align-items:center;gap:14px}
+.cart{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;padding:9px 16px;border-radius:100px;border:1.5px solid var(--espresso);transition:.3s}
+.cart:hover{background:var(--espresso);color:var(--cream)}
+.cart .n{background:var(--rust);color:var(--cream);min-width:20px;height:20px;border-radius:100px;font-size:12px;display:grid;place-items:center;padding:0 5px}
+.cart:hover .n{background:var(--cream);color:var(--espresso)}
+.burger{display:none;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--espresso);align-items:center;justify-content:center}
+.burger span,.burger span::before,.burger span::after{content:"";display:block;width:18px;height:2px;background:var(--espresso);transition:.3s;position:absolute}
+.burger span::before{top:-6px}.burger span::after{top:6px}
+.burger span{position:relative}
+.burger.open span{background:transparent}
+.burger.open span::before{top:0;transform:rotate(45deg)}
+.burger.open span::after{top:0;transform:rotate(-45deg)}
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.hero{min-height:100vh;display:flex;align-items:center;padding-top:120px;padding-bottom:60px}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:50px;align-items:center;width:100%}
+.hero .kicker{margin-bottom:26px}
+.hero h1{font-size:clamp(50px,8.5vw,112px);font-weight:600;line-height:.92;letter-spacing:-.03em}
+.hero h1 .it{font-style:italic;font-weight:500;color:var(--rust)}
+.hero h1 .out{-webkit-text-stroke:1.5px var(--espresso);color:transparent}
+.hero p.lede{max-width:440px;color:var(--ink);font-size:19px;margin:28px 0 34px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.hero-meta{display:flex;gap:34px;margin-top:46px;flex-wrap:wrap}
+.hero-meta .m b{font-family:var(--serif);font-size:32px;font-weight:600;display:block;line-height:1}
+.hero-meta .m span{font-size:13px;color:var(--muted)}
+
+/* coffee bag visual */
+.bag-stage{position:relative;display:grid;place-items:center;height:520px}
+.bag-stage .disc{position:absolute;width:400px;height:400px;border-radius:50%;background:
+  radial-gradient(circle at 50% 40%,var(--caramel),var(--rust) 60%,#8f3d1d 100%);
+  box-shadow:0 40px 90px rgba(140,60,30,.4)}
+.bag-stage .badge{position:absolute;top:8px;right:12px;width:118px;height:118px;animation:rotate 22s linear infinite;z-index:3}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.bag-stage .badge text{font-family:var(--sans);font-size:8.4px;font-weight:600;letter-spacing:.24em;fill:var(--espresso)}
+.bag{position:relative;z-index:2;width:230px;height:320px;background:linear-gradient(160deg,#33251a,#241811);border-radius:8px 8px 10px 10px;
+  box-shadow:0 30px 60px rgba(40,26,17,.45),inset 0 2px 0 rgba(255,255,255,.06);transform:rotate(-4deg);transition:transform .5s var(--ease)}
+.bag::before{content:"";position:absolute;top:-13px;left:24px;right:24px;height:16px;background:#20150e;border-radius:5px 5px 0 0;
+  clip-path:polygon(0 40%,8% 0,16% 40%,24% 0,32% 40%,40% 0,48% 40%,56% 0,64% 40%,72% 0,80% 40%,88% 0,96% 40%,100% 0,100% 100%,0 100%)}
+.bag .label{position:absolute;top:56px;left:22px;right:22px;bottom:34px;background:var(--cream);border-radius:4px;padding:22px 20px;display:flex;flex-direction:column}
+.bag .label .lk{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--rust);font-weight:600}
+.bag .label h4{font-family:var(--serif);font-size:26px;font-weight:600;line-height:1;margin-top:10px;color:var(--espresso)}
+.bag .label .org{font-size:12px;color:var(--muted);margin-top:6px}
+.bag .label .foot{margin-top:auto;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--espresso);border-top:1px solid var(--line);padding-top:12px;display:flex;justify-content:space-between}
+.bean{position:absolute;width:26px;height:34px;background:#2a1a11;border-radius:50%;z-index:1}
+.bean::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 6px 0 0 -3px var(--caramel);transform:rotate(12deg)}
+.bean.b1{top:60px;left:2%;transform:rotate(24deg);animation:floaty 6s ease-in-out infinite}
+.bean.b2{bottom:64px;right:4%;transform:rotate(-30deg);animation:floaty 7s ease-in-out infinite 1s}
+.bean.b3{bottom:20px;left:16%;transform:rotate(40deg);animation:floaty 6.5s ease-in-out infinite .5s}
+@keyframes floaty{50%{transform:translateY(-16px) rotate(30deg)}}
+
+/* ============================================================
+   Marquee ribbon
+   ============================================================ */
+.ribbon{background:var(--espresso);color:var(--cream);padding:20px 0;overflow:hidden;transform:rotate(-1.5deg) scale(1.04);margin:0 0}
+.ribbon-track{display:flex;gap:44px;width:max-content;animation:scroll 30s linear infinite}
+.ribbon-track:hover{animation-play-state:paused}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.ribbon .it{display:flex;align-items:center;gap:44px;font-family:var(--serif);font-size:24px;font-weight:500;font-style:italic}
+.ribbon .it::after{content:"✦";font-style:normal;color:var(--caramel);font-size:16px}
+
+/* ============================================================
+   Coffee collection
+   ============================================================ */
+.coffees{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.cofcard{background:var(--paper-2);border-radius:6px;padding:28px;transition:transform .4s var(--ease),box-shadow .4s;position:relative;overflow:hidden}
+.cofcard:hover{transform:translateY(-8px);box-shadow:0 26px 50px rgba(40,26,17,.16)}
+.cofcard .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.cofcard .price{font-family:var(--serif);font-size:22px;font-weight:600}
+.cofcard .swatch{width:64px;height:64px;border-radius:50%;position:relative;box-shadow:inset 0 -8px 16px rgba(0,0,0,.18)}
+.cofcard h3{font-size:26px;font-weight:600;letter-spacing:-.01em}
+.cofcard .origin{font-size:13px;color:var(--rust);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.cofcard .notes{font-size:14.5px;color:var(--muted);margin-top:14px;min-height:44px}
+.roast{margin-top:20px}
+.roast .rl{display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.roast .track{height:6px;border-radius:6px;background:linear-gradient(90deg,#d9b487,#7a3f21)}
+.roast .track .dot{width:14px;height:14px;border-radius:50%;background:var(--espresso);border:2px solid var(--cream);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.cofcard .add{margin-top:24px;width:100%;justify-content:center;padding:13px}
+
+/* ============================================================
+   Process (sticky-ish steps)
+   ============================================================ */
+.process{background:var(--espresso);color:var(--cream)}
+.process .kicker{color:var(--caramel)}
+.process .kicker::before{background:var(--caramel)}
+.process .head h2 em{color:var(--caramel)}
+.process .head p{color:rgba(251,246,238,.6)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:20px}
+.step{position:relative;padding-top:34px;border-top:1px solid rgba(251,246,238,.16)}
+.step .no{font-family:var(--serif);font-size:15px;color:var(--caramel);position:absolute;top:14px}
+.step .ic{width:56px;height:56px;border-radius:50%;border:1px solid rgba(251,246,238,.2);display:grid;place-items:center;margin-bottom:20px}
+.step .ic svg{width:28px;height:28px;color:var(--caramel)}
+.step h3{font-size:24px;font-weight:600;margin-bottom:10px}
+.step p{color:rgba(251,246,238,.6);font-size:14.5px}
+
+/* ============================================================
+   Brew methods (interactive tabs)
+   ============================================================ */
+.brew{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.brew-tabs{display:flex;flex-direction:column;gap:4px}
+.brew-tab{text-align:left;padding:22px 24px;border-radius:6px;border:1px solid transparent;transition:.35s var(--ease);display:flex;align-items:center;gap:18px}
+.brew-tab .bn{font-family:var(--serif);font-size:20px;color:var(--muted);transition:.3s}
+.brew-tab h4{font-size:22px;font-weight:600;transition:.3s}
+.brew-tab.active{background:var(--paper-2);border-color:var(--line-soft)}
+.brew-tab.active .bn{color:var(--rust)}
+.brew-tab:hover h4{color:var(--rust)}
+.brew-panel{background:var(--paper-2);border-radius:8px;padding:40px;min-height:340px;position:relative;overflow:hidden}
+.brew-view{display:none;animation:fade .5s var(--ease)}
+.brew-view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.brew-view h3{font-size:32px;font-weight:600;margin-bottom:8px}
+.brew-view .sub{color:var(--rust);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.brew-view p{color:var(--muted);margin:16px 0 24px;font-size:15.5px}
+.brew-specs{display:flex;gap:14px;flex-wrap:wrap}
+.spec{background:var(--cream);border-radius:6px;padding:14px 18px;flex:1;min-width:120px}
+.spec b{font-family:var(--serif);font-size:24px;font-weight:600;display:block}
+.spec span{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+/* ============================================================
+   Subscription
+   ============================================================ */
+.subs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
+.sub{background:var(--paper-2);border-radius:8px;padding:34px 30px;display:flex;flex-direction:column;transition:transform .4s var(--ease);position:relative}
+.sub:hover{transform:translateY(-8px)}
+.sub.feat{background:var(--espresso);color:var(--cream)}
+.sub.feat .st,.sub.feat .sd{color:rgba(251,246,238,.65)}
+.sub .tagpop{position:absolute;top:-13px;left:30px;background:var(--rust);color:var(--cream);font-size:12px;font-weight:600;padding:6px 15px;border-radius:100px;letter-spacing:.04em}
+.sub h3{font-family:var(--serif);font-size:26px;font-weight:600}
+.sub .st{font-size:13.5px;color:var(--muted);margin-top:4px}
+.sub .amt{font-family:var(--serif);font-size:48px;font-weight:600;margin:22px 0 4px;letter-spacing:-.02em}
+.sub .amt span{font-size:15px;color:var(--muted);font-family:var(--sans)}
+.sub.feat .amt span{color:rgba(251,246,238,.6)}
+.sub ul{list-style:none;margin:22px 0;display:flex;flex-direction:column;gap:13px;flex:1}
+.sub li{display:flex;gap:11px;font-size:14.5px;align-items:flex-start}
+.sub li svg{width:18px;height:18px;flex-shrink:0;color:var(--rust);margin-top:3px}
+.sub.feat li svg{color:var(--caramel)}
+.sub .btn{width:100%;justify-content:center}
+.sub.feat .btn-out{border-color:var(--cream);color:var(--cream)}
+.sub.feat .btn-out:hover{background:var(--cream);color:var(--espresso)}
+
+/* ============================================================
+   Story / stats
+   ============================================================ */
+.story{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.story-visual{position:relative;height:440px;border-radius:10px;overflow:hidden;
+  background:
+    radial-gradient(circle at 30% 30%,var(--caramel),transparent 55%),
+    linear-gradient(150deg,#3a2618,#241710)}
+.story-visual .ring{position:absolute;border:1px solid rgba(251,246,238,.18);border-radius:50%}
+.story-visual .ring.r1{inset:16%}.story-visual .ring.r2{inset:30%}.story-visual .ring.r3{inset:44%}
+.story-visual .pin{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--caramel);box-shadow:0 0 0 4px rgba(201,138,62,.3)}
+.story-visual .pin.p1{top:32%;left:40%}.story-visual .pin.p2{top:52%;left:60%}.story-visual .pin.p3{top:64%;left:34%}
+.story-visual .cap{position:absolute;bottom:24px;left:24px;color:var(--cream);font-family:var(--serif);font-style:italic;font-size:18px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:34px}
+.stat-grid .s b{font-family:var(--serif);font-size:44px;font-weight:600;display:block;line-height:1;color:var(--rust)}
+.stat-grid .s span{font-size:14px;color:var(--muted)}
+
+/* ============================================================
+   Testimonials
+   ============================================================ */
+.tm{overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.tm-track{display:flex;gap:22px;width:max-content;animation:scroll 44s linear infinite}
+.tm-track:hover{animation-play-state:paused}
+.tcard{width:380px;background:var(--paper-2);border-radius:8px;padding:30px;flex-shrink:0}
+.tcard .q{font-family:var(--serif);font-size:19px;line-height:1.45;margin-bottom:22px}
+.tcard .who{display:flex;align-items:center;gap:13px}
+.tcard .av{width:46px;height:46px;border-radius:50%;flex-shrink:0}
+.tcard b{font-weight:600;display:block;font-size:14.5px}
+.tcard span{font-size:12.5px;color:var(--muted)}
+
+/* ============================================================
+   Journal
+   ============================================================ */
+.journal{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.jcard{cursor:pointer}
+.jcard .thumb{height:230px;border-radius:8px;overflow:hidden;position:relative;margin-bottom:20px}
+.jcard .thumb .g{position:absolute;inset:0;transition:transform .6s var(--ease)}
+.jcard:hover .thumb .g{transform:scale(1.06)}
+.jcard .cat{position:absolute;top:14px;left:14px;background:var(--cream);font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-radius:100px;z-index:2}
+.jcard .date{font-size:13px;color:var(--muted)}
+.jcard h3{font-size:23px;font-weight:600;line-height:1.15;margin:8px 0;transition:color .3s}
+.jcard:hover h3{color:var(--rust)}
+.jcard p{font-size:14.5px;color:var(--muted)}
+
+/* ============================================================
+   Newsletter CTA
+   ============================================================ */
+.cta{background:var(--rust);color:var(--cream);border-radius:14px;padding:80px 40px;text-align:center;position:relative;overflow:hidden}
+.cta::before,.cta::after{content:"✦";position:absolute;color:rgba(251,246,238,.25);font-size:40px}
+.cta::before{top:30px;left:40px}.cta::after{bottom:30px;right:40px}
+.cta h2{font-size:clamp(32px,5vw,56px);font-weight:600;letter-spacing:-.02em;line-height:1.02;position:relative}
+.cta p{max-width:460px;margin:18px auto 32px;font-size:17px;color:rgba(251,246,238,.85);position:relative}
+.cta form{display:flex;gap:10px;max-width:440px;margin:0 auto;position:relative;flex-wrap:wrap}
+.cta input{flex:1;min-width:200px;padding:16px 22px;border-radius:100px;border:none;font-family:inherit;font-size:15px;background:var(--cream);color:var(--ink);outline:none}
+.cta button{padding:16px 30px;border-radius:100px;background:var(--espresso);color:var(--cream);font-weight:600;transition:transform .3s var(--ease)}
+.cta button:hover{transform:scale(1.04)}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+footer{padding:80px 0 40px;border-top:1px solid var(--line)}
+.fgrid{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:40px;margin-bottom:56px}
+.fbrand p{color:var(--muted);font-size:14.5px;margin:18px 0 22px;max-width:280px}
+.fsoc{display:flex;gap:12px}
+.fsoc a{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;transition:.3s;color:var(--ink)}
+.fsoc a:hover{background:var(--espresso);color:var(--cream);border-color:var(--espresso)}
+.fsoc svg{width:17px;height:17px}
+.fcol h5{font-family:var(--serif);font-size:16px;font-weight:600;margin-bottom:18px}
+.fcol a{display:block;color:var(--muted);font-size:14.5px;margin-bottom:12px;transition:color .25s}
+.fcol a:hover{color:var(--rust)}
+.fbot{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:28px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+.fbot .lk{display:flex;gap:22px}
+.fbot .lk a:hover{color:var(--rust)}
+.big-word{font-family:var(--serif);font-size:clamp(70px,20vw,260px);font-weight:600;text-align:center;letter-spacing:-.03em;line-height:.8;color:var(--espresso);opacity:.06;margin-top:40px;user-select:none}
+
+/* ============================================================
+   Cart drawer + modal
+   ============================================================ */
+.overlay{position:fixed;inset:0;z-index:1100;background:rgba(42,26,17,.5);backdrop-filter:blur(4px);opacity:0;visibility:hidden;transition:opacity .4s var(--ease),visibility .4s}
+.overlay.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:1200;width:min(440px,100%);background:var(--paper);
+  box-shadow:-30px 0 80px rgba(40,26,17,.3);transform:translateX(100%);transition:transform .5s var(--ease);
+  display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer-h{display:flex;align-items:center;justify-content:space-between;padding:26px 28px;border-bottom:1px solid var(--line)}
+.drawer-h h3{font-family:var(--serif);font-size:24px;font-weight:600}
+.drawer-h .cnt{color:var(--muted);font-size:14px}
+.dclose{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;transition:.3s}
+.dclose:hover{background:var(--espresso);color:var(--cream);border-color:var(--espresso)}
+.dclose svg{width:18px;height:18px}
+.drawer-body{flex:1;overflow-y:auto;padding:8px 28px}
+.cart-empty{text-align:center;color:var(--muted);padding:70px 20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.cart-empty svg{width:54px;height:54px;color:var(--line);stroke-width:1.4}
+.cart-empty b{font-family:var(--serif);font-size:20px;color:var(--ink);font-weight:600}
+.citem{display:flex;gap:16px;align-items:center;padding:20px 0;border-bottom:1px solid var(--line-soft)}
+.citem .sw{width:52px;height:52px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 -6px 12px rgba(0,0,0,.18)}
+.citem .info{flex:1;min-width:0}
+.citem .info b{font-family:var(--serif);font-size:17px;font-weight:600;display:block;line-height:1.2}
+.citem .info span{font-size:12.5px;color:var(--muted)}
+.citem .price{font-family:var(--serif);font-weight:600;font-size:15px;white-space:nowrap}
+.qty{display:flex;align-items:center;gap:10px;margin-top:8px}
+.qty button{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:16px;line-height:1;transition:.25s;color:var(--ink)}
+.qty button:hover{background:var(--espresso);color:var(--cream);border-color:var(--espresso)}
+.qty .q{font-variant-numeric:tabular-nums;min-width:20px;text-align:center;font-weight:600;font-size:14px}
+.citem .rm{background:none;color:var(--muted);font-size:12px;text-decoration:underline;padding:0;margin-top:6px;transition:color .25s}
+.citem .rm:hover{color:var(--rust)}
+.drawer-foot{padding:22px 28px 28px;border-top:1px solid var(--line);background:var(--paper-2)}
+.drawer-foot .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:14px;color:var(--muted)}
+.drawer-foot .row.total{margin:12px 0 20px;color:var(--ink)}
+.drawer-foot .row.total b{font-family:var(--serif);font-size:28px;font-weight:600}
+.drawer-foot .btn{width:100%;justify-content:center}
+.drawer-foot .note{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}
+
+/* checkout modal */
+.modal{position:fixed;inset:0;z-index:1300;display:grid;place-items:center;padding:24px;opacity:0;visibility:hidden;transition:opacity .4s var(--ease),visibility .4s}
+.modal.open{opacity:1;visibility:visible}
+.modal .sheet{width:min(520px,100%);max-height:90vh;overflow-y:auto;background:var(--paper);border-radius:14px;padding:36px;
+  transform:translateY(24px) scale(.98);transition:transform .5s var(--ease);box-shadow:0 40px 100px rgba(40,26,17,.4)}
+.modal.open .sheet{transform:none}
+.modal .sheet h3{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em}
+.modal .sheet .lead{color:var(--muted);font-size:15px;margin:8px 0 26px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);margin-bottom:7px}
+.field input,.field select{width:100%;padding:14px 16px;border-radius:8px;border:1.5px solid var(--line);background:var(--cream);
+  font-family:inherit;font-size:15px;color:var(--ink);outline:none;transition:border .25s}
+.field input:focus,.field select:focus{border-color:var(--rust)}
+.field.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal .msum{background:var(--paper-2);border-radius:8px;padding:16px 18px;margin:8px 0 22px;font-size:14px}
+.modal .msum .r{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}
+.modal .msum .r.tot{border-top:1px solid var(--line);margin-top:8px;padding-top:10px;color:var(--ink);font-weight:600}
+.modal .msum .r.tot b{font-family:var(--serif);font-size:20px}
+.modal .mrow{display:flex;gap:12px;margin-top:8px}
+.modal .mrow .btn{flex:1;justify-content:center}
+.done-state{text-align:center;padding:20px 10px}
+.done-state .circ{width:76px;height:76px;border-radius:50%;background:var(--rust);color:var(--cream);display:grid;place-items:center;margin:0 auto 22px}
+.done-state .circ svg{width:36px;height:36px;stroke-width:2.4}
+.done-state h3{margin-bottom:10px}
+.done-state p{color:var(--muted);font-size:15px;margin-bottom:26px}
+@media(max-width:640px){.modal .sheet{padding:26px 22px}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal[data-d="1"]{transition-delay:.08s}.reveal[data-d="2"]{transition-delay:.16s}
+.reveal[data-d="3"]{transition-delay:.24s}.reveal[data-d="4"]{transition-delay:.32s}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media(max-width:960px){
+  .menu{display:none}
+  .hero-grid{grid-template-columns:1fr;gap:40px}
+  .bag-stage{height:440px;order:-1}
+  .coffees,.subs,.journal{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:1fr 1fr;gap:34px}
+  .brew{grid-template-columns:1fr;gap:30px}
+  .story{grid-template-columns:1fr;gap:34px}
+  .fgrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  section{padding:84px 0}
+  .burger{display:flex}
+  .menu{position:absolute;top:70px;left:14px;right:14px;flex-direction:column;align-items:stretch;gap:2px;
+    background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:12px;
+    box-shadow:0 20px 50px rgba(40,26,17,.18);transform:translateY(-12px);opacity:0;pointer-events:none;transition:.35s var(--ease)}
+  .menu.open{display:flex;transform:none;opacity:1;pointer-events:auto}
+  .cart span.t{display:none}
+  .coffees,.subs,.journal,.steps,.fgrid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .cta{padding:56px 24px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.14s!important}}
+</style>
+</head>
+<body class="lock">
+
+<div id="bar"></div>
+
+<!-- ===================== LOADER ===================== -->
+<div id="loader">
+  <div class="cup">
+    <div class="steam"><i></i><i></i><i></i></div>
+    <div class="body"></div>
+    <div class="handle"></div>
+    <div class="fill" id="cupFill"></div>
+  </div>
+  <div class="l-count" id="lcount">00</div>
+  <div class="l-word" id="lword">Разжигаем ростер…</div>
+</div>
+
+<!-- ===================== BG ===================== -->
+<div class="warmth"></div>
+<div class="grain"></div>
+
+<!-- ===================== HEADER ===================== -->
+<header id="header">
+  <div class="wrap nav">
+    <a href="#top" class="brand">
+      <span class="seal"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9h12v5a5 5 0 01-5 5H9a5 5 0 01-5-5V9z" stroke="currentColor" stroke-width="1.6"/><path d="M16 10h2a2.5 2.5 0 010 5h-2" stroke="currentColor" stroke-width="1.6"/><path d="M7 3c-.7 1 .7 1.8 0 3M11 3c-.7 1 .7 1.8 0 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      EMBER
+    </a>
+    <nav class="menu" id="menu">
+      <a href="#coffees">Кофе</a>
+      <a href="#process">Обжарка</a>
+      <a href="#brew">Как варить</a>
+      <a href="#subs">Подписка</a>
+      <a href="#story">О нас</a>
+      <a href="#journal">Журнал</a>
+    </nav>
+    <div class="nav-right">
+      <button class="cart" id="cart"><span class="t">Корзина</span><span class="n" id="cartN">0</span></button>
+      <button class="burger" id="burger" aria-label="Меню"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="kicker reveal">Обжарщики с 2014 · Small batch</span>
+      <h1 class="reveal" data-d="1">Кофе, ради<br>которого <span class="it">стоит</span><br><span class="out">замедлиться</span></h1>
+      <p class="lede reveal" data-d="2">Мы обжариваем зерно небольшими партиями каждое утро и отправляем его вам в течение 24 часов. Честное происхождение, ясный вкус, ничего лишнего.</p>
+      <div class="hero-actions reveal" data-d="3">
+        <a href="#coffees" class="btn btn-solid" data-mag>Выбрать кофе <span class="arr">→</span></a>
+        <a href="#subs" class="btn btn-out" data-mag>Оформить подписку</a>
+      </div>
+      <div class="hero-meta reveal" data-d="4">
+        <div class="m"><b data-count="11">0</b><span>стран происхождения</span></div>
+        <div class="m"><b data-count="24" data-suffix="ч">0</b><span>от обжарки до отправки</span></div>
+        <div class="m"><b data-count="38">0</b><span>тысяч чашек в месяц</span></div>
+      </div>
+    </div>
+
+    <div class="bag-stage reveal" data-d="2">
+      <div class="disc"></div>
+      <svg class="badge" viewBox="0 0 120 120">
+        <defs><path id="circ" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"/></defs>
+        <text><textPath href="#circ" startOffset="0">· FRESHLY ROASTED · SINGLE ORIGIN · SMALL BATCH </textPath></text>
+      </svg>
+      <span class="bean b1"></span><span class="bean b2"></span><span class="bean b3"></span>
+      <div class="bag" id="heroBag">
+        <div class="label">
+          <span class="lk">Эфиопия · Иргачеффе</span>
+          <h4>Утренний<br>костёр</h4>
+          <span class="org">мытая обработка · 1900 м</span>
+          <div class="foot"><span>Жасмин · Персик</span><span>250 г</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RIBBON ===================== -->
+<div class="ribbon reveal">
+  <div class="ribbon-track" id="ribbon"></div>
+</div>
+
+<!-- ===================== COFFEES ===================== -->
+<section id="coffees">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="kicker">Коллекция</span>
+      <h2>Зёрна этой <em>недели</em></h2>
+      <p>Каждую партию мы дегустируем вслепую и оставляем только то, что действительно нравится нам самим.</p>
+    </div>
+    <div class="coffees" id="coffees"></div>
+  </div>
+</section>
+
+<!-- ===================== PROCESS ===================== -->
+<section class="process" id="process">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="kicker">От фермы до чашки</span>
+      <h2>Четыре шага, <em>ноль</em> компромиссов</h2>
+      <p>Мы контролируем каждый этап — от выбора фермера до профиля обжарки под конкретный лот.</p>
+    </div>
+    <div class="steps" id="steps"></div>
+  </div>
+</section>
+
+<!-- ===================== BREW ===================== -->
+<section id="brew">
+  <div class="wrap">
+    <div class="head center reveal">
+      <span class="kicker">Гид по завариванию</span>
+      <h2>Найдите <em>свой</em> способ</h2>
+      <p>Один и тот же кофе звучит по-разному. Выберите метод — покажем рецепт.</p>
+    </div>
+    <div class="brew">
+      <div class="brew-tabs reveal" id="brewTabs"></div>
+      <div class="brew-panel reveal" data-d="1" id="brewPanel"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SUBSCRIPTION ===================== -->
+<section id="subs">
+  <div class="wrap">
+    <div class="head center reveal">
+      <span class="kicker">Подписка</span>
+      <h2>Свежий кофе — <em>по расписанию</em></h2>
+      <p>Выберите объём и ритм. Меняйте, ставьте на паузу или отменяйте в любой момент.</p>
+    </div>
+    <div class="subs">
+      <div class="sub reveal">
+        <h3>Пробный</h3><p class="st">Для знакомства</p>
+        <div class="amt">690 ₽<span>/мес</span></div>
+        <ul>
+          <li>{c} 250 г зерна раз в месяц</li><li>{c} Один сорт на выбор ростера</li><li>{c} Бесплатная доставка</li><li>{c} Карточка с рецептом</li>
+        </ul>
+        <a href="#" class="btn btn-out" data-mag>Выбрать</a>
+      </div>
+      <div class="sub feat reveal" data-d="1">
+        <span class="tagpop">Хит</span>
+        <h3>Ежедневный</h3><p class="st">Для настоящих любителей</p>
+        <div class="amt">1 290 ₽<span>/мес</span></div>
+        <ul>
+          <li>{c} 500 г зерна два раза в месяц</li><li>{c} Ротация single origin</li><li>{c} Приоритетная доставка 24 ч</li><li>{c} Доступ к микролотам</li><li>{c} −15% на всё в магазине</li>
+        </ul>
+        <a href="#" class="btn btn-out" data-mag>Выбрать</a>
+      </div>
+      <div class="sub reveal" data-d="2">
+        <h3>Офисный</h3><p class="st">Для команды</p>
+        <div class="amt">3 900 ₽<span>/мес</span></div>
+        <ul>
+          <li>{c} 2 кг зерна в месяц</li><li>{c} Смесь и single origin</li><li>{c} Гибкий график поставок</li><li>{c} Бесплатная калибровка кофемашины</li>
+        </ul>
+        <a href="#" class="btn btn-out" data-mag>Выбрать</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STORY ===================== -->
+<section id="story">
+  <div class="wrap story">
+    <div class="story-visual reveal">
+      <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+      <span class="pin p1"></span><span class="pin p2"></span><span class="pin p3"></span>
+      <div class="cap">«Мы знаем каждого фермера по имени»</div>
+    </div>
+    <div class="reveal" data-d="1">
+      <span class="kicker">Наша история</span>
+      <h2 style="font-family:var(--serif);font-size:clamp(32px,4.6vw,52px);font-weight:600;letter-spacing:-.02em;line-height:1.03;margin:20px 0 18px">Маленькая обжарочная<br>с большими принципами</h2>
+      <p style="color:var(--muted);font-size:17px">Всё началось с одного барабанного ростера в гараже и упрямой идеи: кофе должен быть свежим, прозрачным по происхождению и честным по цене. Сегодня нас больше, но принципы те же — прямые контракты с фермерами и обжарка ровно под каждый лот.</p>
+      <div class="stat-grid">
+        <div class="s"><b data-count="42">0</b><span>партнёрских ферм</span></div>
+        <div class="s"><b data-count="100" data-suffix="%">0%</b><span>прямые контракты</span></div>
+        <div class="s"><b data-count="6">0</b><span>городов доставки</span></div>
+        <div class="s"><b data-count="2014">0</b><span>год основания</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TESTIMONIALS ===================== -->
+<section id="testimonials">
+  <div class="wrap">
+    <div class="head center reveal">
+      <span class="kicker">Отзывы</span>
+      <h2>За что нас <em>любят</em></h2>
+    </div>
+  </div>
+  <div class="tm reveal">
+    <div class="tm-track" id="tm"></div>
+  </div>
+</section>
+
+<!-- ===================== JOURNAL ===================== -->
+<section id="journal">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="kicker">Журнал</span>
+      <h2>Читать за <em>чашкой</em></h2>
+    </div>
+    <div class="journal" id="journal"></div>
+  </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section id="cta">
+  <div class="wrap reveal">
+    <div class="cta">
+      <h2>Первый заказ — <br>−20% на любое зерно</h2>
+      <p>Подпишитесь на рассылку: рецепты, истории ферм и ранний доступ к редким микролотам.</p>
+      <form onsubmit="return false" id="ctaForm">
+        <input type="email" placeholder="Ваш e-mail" aria-label="E-mail" required>
+        <button type="submit">Забрать скидку</button>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ===================== CART DRAWER ===================== -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-label="Корзина" aria-hidden="true">
+  <div class="drawer-h">
+    <div><h3>Корзина</h3><div class="cnt" id="drawerCnt">0 товаров</div></div>
+    <button class="dclose" id="drawerClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot" style="display:none">
+    <div class="row"><span>Товары</span><span id="sumItems">0 ₽</span></div>
+    <div class="row"><span>Доставка</span><span id="sumShip">Бесплатно</span></div>
+    <div class="row total"><span>Итого</span><b id="sumTotal">0 ₽</b></div>
+    <button class="btn btn-solid" id="checkoutBtn" data-mag>Оформить заказ <span class="arr">→</span></button>
+    <div class="note">Обжарим и отправим в течение 24 часов</div>
+  </div>
+</aside>
+
+<!-- ===================== CHECKOUT MODAL ===================== -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Оформление заказа">
+  <div class="sheet" id="modalSheet"></div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="fbrand">
+        <a href="#top" class="brand"><span class="seal"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9h12v5a5 5 0 01-5 5H9a5 5 0 01-5-5V9z" stroke="currentColor" stroke-width="1.6"/><path d="M16 10h2a2.5 2.5 0 010 5h-2" stroke="currentColor" stroke-width="1.6"/></svg></span>EMBER</a>
+        <p>Обжарщики specialty-кофе. Small batch, single origin, обжарка каждое утро в Москве.</p>
+        <div class="fsoc">
+          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg></a>
+          <a href="#" aria-label="Telegram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3l-3.1 15c-.2 1-.9 1.3-1.7.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-1 .5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.6 13.2l-4.5-1.4c-1-.3-1-1 .2-1.5l17.6-6.8c.8-.3 1.5.2 1.2 1.3z"/></svg></a>
+          <a href="#" aria-label="VK"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.8 16.3c-5 0-8.2-3.5-8.3-9.2h2.6c.1 4.2 2 6 3.4 6.4V7.1h2.4v3.6c1.4-.2 2.9-1.7 3.4-3.6h2.4c-.4 2.3-1.9 3.8-3 4.4 1.1.5 2.8 1.8 3.4 4.8h-2.7c-.5-1.6-1.8-2.9-3.5-3.1v3.1h-.5z"/></svg></a>
+        </div>
+      </div>
+      <div class="fcol"><h5>Магазин</h5><a href="#coffees">Все сорта</a><a href="#subs">Подписка</a><a href="#">Наборы</a><a href="#">Оборудование</a><a href="#">Подарочные карты</a></div>
+      <div class="fcol"><h5>О нас</h5><a href="#story">История</a><a href="#process">Обжарка</a><a href="#">Наши фермы</a><a href="#journal">Журнал</a><a href="#">Вакансии</a></div>
+      <div class="fcol"><h5>Помощь</h5><a href="#brew">Как варить</a><a href="#">Доставка</a><a href="#">Возврат</a><a href="#">Оптом</a><a href="#">Контакты</a></div>
+    </div>
+    <div class="fbot">
+      <span>© 2026 EMBER Coffee Roasters. Обжарено с любовью.</span>
+      <div class="lk"><a href="#">Политика</a><a href="#">Оферта</a><a href="#">Cookies</a></div>
+    </div>
+    <div class="big-word" aria-hidden="true">EMBER</div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   EMBER — interactions
+   ============================================================ */
+(function(){
+'use strict';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s=>document.querySelector(s), $$ = s=>[...document.querySelectorAll(s)];
+
+/* ---------- Loader ---------- */
+const words=['Разжигаем ростер…','Взвешиваем зерно…','Первый крэк…','Готово. Наливайте.'];
+const lword=$('#lword'), lcount=$('#lcount'), cupFill=$('#cupFill');
+let n=0;
+const dur=reduce?300:1900, start=performance.now();
+function loadTick(now){
+  const p=Math.min((now-start)/dur,1);
+  const val=Math.round(p*100);
+  lcount.textContent=String(val).padStart(2,'0');
+  cupFill.style.height=(p*38)+'px';
+  const wi=Math.min(words.length-1,Math.floor(p*words.length));
+  if(wi!==n){ n=wi; lword.textContent=words[wi]; }
+  if(p<1) requestAnimationFrame(loadTick);
+  else finish();
+}
+requestAnimationFrame(loadTick);
+function finish(){
+  lword.innerHTML='<b>Готово. Наливайте.</b>';
+  setTimeout(()=>{
+    const l=$('#loader'); if(!l) return;
+    l.classList.add('done'); document.body.classList.remove('lock');
+    setTimeout(()=>l.remove(),900);
+    initReveal(); initCounters();
+  }, reduce?150:450);
+}
+
+/* ---------- Header + progress ---------- */
+const header=$('#header'), bar=$('#bar');
+addEventListener('scroll',()=>{
+  header.classList.toggle('scrolled', scrollY>24);
+  const h=document.documentElement;
+  bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+},{passive:true});
+
+/* ---------- Mobile menu ---------- */
+const burger=$('#burger'), menu=$('#menu');
+burger.addEventListener('click',()=>{ burger.classList.toggle('open'); menu.classList.toggle('open'); });
+menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{ burger.classList.remove('open'); menu.classList.remove('open'); }));
+
+/* ---------- Magnetic buttons ---------- */
+if(!reduce)$$('[data-mag]').forEach(el=>{
+  el.addEventListener('mousemove',e=>{
+    const r=el.getBoundingClientRect();
+    el.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.2}px,${(e.clientY-r.top-r.height/2)*.3}px)`;
+  });
+  el.addEventListener('mouseleave',()=>el.style.transform='');
+});
+
+/* ---------- Ripple ---------- */
+$$('.btn, .cta button').forEach(b=>b.addEventListener('click',e=>{
+  const r=document.createElement('span'); r.className='ripple';
+  const rect=b.getBoundingClientRect();
+  r.style.left=(e.clientX-rect.left)+'px'; r.style.top=(e.clientY-rect.top)+'px';
+  r.style.width=r.style.height=Math.max(rect.width,rect.height)/8+'px';
+  b.appendChild(r); setTimeout(()=>r.remove(),600);
+}));
+
+/* ---------- Hero bag subtle tilt ---------- */
+const bag=$('#heroBag');
+if(bag && !reduce){
+  const stage=bag.closest('.bag-stage');
+  stage.addEventListener('mousemove',e=>{
+    const r=stage.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+    bag.style.transform=`rotate(-4deg) rotateY(${x*14}deg) rotateX(${-y*10}deg)`;
+  });
+  stage.addEventListener('mouseleave',()=>bag.style.transform='rotate(-4deg)');
+}
+
+/* ============================================================
+   Cart system
+   ============================================================ */
+const cartN=$('#cartN');
+const overlay=$('#overlay'), drawer=$('#drawer'), modal=$('#modal');
+let cart=[]; /* {id,name,origin,price,c1,c2,qty} */
+
+function money(v){ return v.toLocaleString('ru-RU')+' ₽'; }
+function cartQty(){ return cart.reduce((s,i)=>s+i.qty,0); }
+function cartTotal(){ return cart.reduce((s,i)=>s+i.price*i.qty,0); }
+
+function addToCart(item){
+  const ex=cart.find(i=>i.id===item.id);
+  if(ex) ex.qty++; else cart.push({...item,qty:1});
+  renderCart(); syncBadge(true);
+  openDrawer();
+}
+function changeQty(id,d){
+  const it=cart.find(i=>i.id===id); if(!it) return;
+  it.qty+=d; if(it.qty<=0) cart=cart.filter(i=>i.id!==id);
+  renderCart(); syncBadge(false);
+}
+function removeItem(id){ cart=cart.filter(i=>i.id!==id); renderCart(); syncBadge(false); }
+
+function syncBadge(bump){
+  const q=cartQty(); cartN.textContent=q;
+  if(bump && q>0) cartN.animate([{transform:'scale(1.6)'},{transform:'scale(1)'}],{duration:320,easing:'ease'});
+}
+function renderCart(){
+  const body=$('#drawerBody'), foot=$('#drawerFoot');
+  $('#drawerCnt').textContent=cartQty()+' '+plural(cartQty(),['товар','товара','товаров']);
+  if(!cart.length){
+    body.innerHTML=`<div class="cart-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 13h11l2-9H6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>Пока пусто</b><span>Добавьте зерно из коллекции —<br>и оно появится здесь</span></div>`;
+    foot.style.display='none'; return;
+  }
+  foot.style.display='block';
+  body.innerHTML=cart.map(i=>`
+    <div class="citem">
+      <span class="sw" style="background:radial-gradient(circle at 40% 35%,${i.c1},${i.c2})"></span>
+      <div class="info">
+        <b>${i.name}</b><span>${i.origin} · 250 г</span>
+        <div class="qty">
+          <button data-dec="${i.id}" aria-label="Меньше">−</button>
+          <span class="q">${i.qty}</span>
+          <button data-inc="${i.id}" aria-label="Больше">+</button>
+        </div>
+        <button class="rm" data-rm="${i.id}">Удалить</button>
+      </div>
+      <div class="price">${money(i.price*i.qty)}</div>
+    </div>`).join('');
+  $('#sumItems').textContent=money(cartTotal());
+  $('#sumTotal').textContent=money(cartTotal());
+}
+function plural(n,f){ const m=n%100,d=n%10; return m>10&&m<20?f[2]:d===1?f[0]:d>1&&d<5?f[1]:f[2]; }
+
+/* drawer open/close */
+function openDrawer(){ overlay.classList.add('open'); drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false'); }
+function closeDrawer(){ overlay.classList.remove('open'); drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+$('#cart').addEventListener('click',()=>{ renderCart(); openDrawer(); });
+$('#drawerClose').addEventListener('click',closeDrawer);
+overlay.addEventListener('click',()=>{ closeDrawer(); closeModal(); });
+$('#drawerBody').addEventListener('click',e=>{
+  const inc=e.target.closest('[data-inc]'), dec=e.target.closest('[data-dec]'), rm=e.target.closest('[data-rm]');
+  if(inc) changeQty(inc.dataset.inc,1);
+  if(dec) changeQty(dec.dataset.dec,-1);
+  if(rm) removeItem(rm.dataset.rm);
+});
+
+/* checkout modal */
+function openModal(){ renderCheckout(); modal.classList.add('open'); overlay.classList.add('open'); }
+function closeModal(){ modal.classList.remove('open'); }
+$('#checkoutBtn').addEventListener('click',()=>{ if(cart.length) openModal(); });
+addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeDrawer(); closeModal(); } });
+
+function renderCheckout(){
+  const ship=cartTotal()>=1500?0:290;
+  const grand=cartTotal()+ship;
+  $('#modalSheet').innerHTML=`
+    <h3>Оформление заказа</h3>
+    <p class="lead">Заполните данные — свяжемся для подтверждения и обжарим зерно в течение 24 часов.</p>
+    <form id="orderForm" novalidate>
+      <div class="field"><label>Имя и фамилия</label><input required name="name" placeholder="Анна Смирнова"></div>
+      <div class="field two">
+        <div><label>Телефон</label><input required name="phone" type="tel" placeholder="+7 900 000-00-00"></div>
+        <div><label>E-mail</label><input required name="email" type="email" placeholder="you@mail.ru"></div>
+      </div>
+      <div class="field"><label>Город</label><input required name="city" placeholder="Москва"></div>
+      <div class="field"><label>Адрес доставки</label><input required name="addr" placeholder="Улица, дом, квартира"></div>
+      <div class="field"><label>Помол</label>
+        <select name="grind"><option>В зёрнах</option><option>Эспрессо</option><option>V60 / фильтр</option><option>Aeropress</option><option>Френч-пресс</option></select>
+      </div>
+      <div class="msum">
+        <div class="r"><span>Товары (${cartQty()} ${plural(cartQty(),['шт','шт','шт'])})</span><span>${money(cartTotal())}</span></div>
+        <div class="r"><span>Доставка</span><span>${ship===0?'Бесплатно':money(ship)}</span></div>
+        <div class="r tot"><span>Итого к оплате</span><b>${money(grand)}</b></div>
+      </div>
+      <div class="mrow">
+        <button type="button" class="btn btn-out" id="backBtn">Назад</button>
+        <button type="submit" class="btn btn-solid" data-mag>Подтвердить заказ</button>
+      </div>
+    </form>`;
+  $('#backBtn').addEventListener('click',closeModal);
+  $('#orderForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const f=e.target;
+    if(!f.checkValidity()){ f.reportValidity(); return; }
+    const num=Math.floor(100000+Math.random()*900000);
+    $('#modalSheet').innerHTML=`
+      <div class="done-state">
+        <div class="circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Заказ №${num} принят!</h3>
+        <p>Спасибо! Мы отправили подтверждение на почту. Свежеобжаренное зерно будет у вас совсем скоро.</p>
+        <button class="btn btn-solid" id="doneBtn" data-mag>Отлично</button>
+      </div>`;
+    cart=[]; renderCart(); syncBadge(false);
+    $('#doneBtn').addEventListener('click',()=>{ closeModal(); closeDrawer(); });
+  });
+}
+
+/* ============================================================
+   Content
+   ============================================================ */
+/* Ribbon */
+const ribItems=['Свежая обжарка','Прямые контракты','Single origin','Small batch','Обжарка каждое утро','Доставка за 24 часа','Честное происхождение'];
+const ribHTML=ribItems.map(t=>`<span class="it">${t}</span>`).join('');
+$('#ribbon').innerHTML=ribHTML+ribHTML;
+
+/* Coffees */
+const coffees=[
+  {id:'ember',n:'Утренний костёр',o:'Эфиопия · Иргачеффе',notes:'Жасмин, персик, чёрный чай',price:890,roast:22,c1:'#c98a3e',c2:'#8f4a22'},
+  {id:'midnight',n:'Полночь',o:'Колумбия · Уила',notes:'Тёмный шоколад, слива, карамель',price:840,roast:74,c1:'#7a3f21',c2:'#2a1a11'},
+  {id:'garden',n:'Тихий сад',o:'Кения · Ньери',notes:'Чёрная смородина, томат, цитрус',price:950,roast:40,c1:'#b5602f',c2:'#7a3f21'},
+];
+$('#coffees').innerHTML=coffees.map((c,i)=>`
+  <div class="cofcard reveal" data-d="${i}">
+    <div class="top">
+      <div class="swatch" style="background:radial-gradient(circle at 40% 35%,${c.c1},${c.c2})"></div>
+      <div class="price">${money(c.price)}</div>
+    </div>
+    <h3>${c.n}</h3>
+    <div class="origin">${c.o}</div>
+    <p class="notes">${c.notes}</p>
+    <div class="roast">
+      <div class="rl"><span>Светлая</span><span>Тёмная</span></div>
+      <div class="track"><div class="dot" style="margin-left:calc(${c.roast}% - 7px)"></div></div>
+    </div>
+    <button class="btn btn-solid add" data-i="${i}" data-mag>В корзину · 250 г</button>
+  </div>`).join('');
+$$('.cofcard .add').forEach(b=>b.addEventListener('click',()=>{
+  const c=coffees[+b.dataset.i];
+  addToCart({id:c.id,name:c.n,origin:c.o,price:c.price,c1:c.c1,c2:c.c2});
+}));
+
+/* Process steps */
+const steps=[
+  {t:'Источник',d:'Прямые контракты с фермерами и честная цена за качество зерна.',ic:'<path d="M12 2C8 6 8 10 12 14c4-4 4-8 0-12z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 14v8M8 18h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'},
+  {t:'Обжарка',d:'Барабанный ростер и отдельный профиль под каждый лот — каждое утро.',ic:'<circle cx="12" cy="13" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M9 3c-.6 1 .6 1.6 0 2.6M15 3c-.6 1 .6 1.6 0 2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>'},
+  {t:'Помол',d:'Мелем под ваш метод прямо перед отправкой — или оставляем в зерне.',ic:'<path d="M7 4h10l-1 6H8L7 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 10l-1 6h8l-1-6M10 20h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'},
+  {t:'Чашка',d:'Карточка с рецептом в каждой пачке — чтобы получилось с первого раза.',ic:'<path d="M4 9h12v5a5 5 0 01-5 5H9a5 5 0 01-5-5V9z" stroke="currentColor" stroke-width="1.6"/><path d="M16 10h2a2.5 2.5 0 010 5h-2" stroke="currentColor" stroke-width="1.6"/>'},
+];
+$('#steps').innerHTML=steps.map((s,i)=>`
+  <div class="step reveal" data-d="${i}">
+    <span class="no">0${i+1}</span>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none">${s.ic}</svg></div>
+    <h3>${s.t}</h3><p>${s.d}</p>
+  </div>`).join('');
+
+/* Brew methods */
+const brews=[
+  {n:'V60',t:'Пуровер V60',sub:'Ясность и лёгкость',p:'Чистая, яркая чашка с выразительной кислотностью. Идеально раскрывает фруктовые сорта вроде эфиопских.',specs:[['15 г','кофе'],['250 мл','вода'],['93°C','темп.'],['2:30','время']]},
+  {n:'Аэ',t:'Aeropress',sub:'Плотно и прощает ошибки',p:'Быстрый и гибкий метод. Даёт насыщенное тело и мягкость — отличный старт для дома.',specs:[['16 г','кофе'],['230 мл','вода'],['85°C','темп.'],['1:30','время']]},
+  {n:'Фр',t:'Френч-пресс',sub:'Тело и насыщенность',p:'Максимум тела и маслянистости. Простой ритуал без лишних движений — просто залил и подождал.',specs:[['30 г','кофе'],['500 мл','вода'],['95°C','темп.'],['4:00','время']]},
+  {n:'Эсп',t:'Эспрессо',sub:'Концентрат вкуса',p:'Плотный, сладкий, с долгим послевкусием. Основа для капучино и рафа. Требует настройки помола.',specs:[['18 г','кофе'],['36 г','напиток'],['92°C','темп.'],['0:28','время']]},
+];
+const brewTabs=$('#brewTabs'), brewPanel=$('#brewPanel');
+brewTabs.innerHTML=brews.map((b,i)=>`
+  <button class="brew-tab${i===0?' active':''}" data-i="${i}">
+    <span class="bn">0${i+1}</span><h4>${b.t}</h4>
+  </button>`).join('');
+brewPanel.innerHTML=brews.map((b,i)=>`
+  <div class="brew-view${i===0?' on':''}" data-i="${i}">
+    <span class="sub">${b.sub}</span>
+    <h3>${b.t}</h3>
+    <p>${b.p}</p>
+    <div class="brew-specs">${b.specs.map(s=>`<div class="spec"><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}</div>
+  </div>`).join('');
+brewTabs.addEventListener('click',e=>{
+  const t=e.target.closest('.brew-tab'); if(!t) return;
+  const i=t.dataset.i;
+  $$('.brew-tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
+  $$('.brew-view').forEach(v=>v.classList.toggle('on', v.dataset.i===i));
+});
+
+/* Subscription checks */
+const check='<svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+$$('.sub li').forEach(li=>li.innerHTML=li.innerHTML.replace('{c}',check));
+
+/* Testimonials */
+const testi=[
+  {q:'Впервые пью фильтр-кофе дома, который вкуснее, чем в кофейне. Иргачеффе — космос.',n:'Марина К.',r:'Москва',g:['#c98a3e','#8f4a22']},
+  {q:'Подписка спасает: зерно приходит день в день свежее, и всегда что-то новое.',n:'Илья Р.',r:'Санкт-Петербург',g:['#7a3f21','#2a1a11']},
+  {q:'Карточка с рецептом в пачке — гениально. Наконец-то V60 получается стабильно.',n:'Женя П.',r:'Казань',g:['#b5602f','#6e6b4a']},
+  {q:'Взяли офисную подписку — команда счастлива, а я забыл про растворимый навсегда.',n:'Артём С.',r:'Екатеринбург',g:['#c98a3e','#be562b']},
+  {q:'Люблю, что видно ферму и высоту. Чувствуешь, что за чашкой стоят живые люди.',n:'Ольга В.',r:'Новосибирск',g:['#6e6b4a','#8f4a22']},
+];
+const av=(g,i)=>`<svg class="av" viewBox="0 0 46 46"><defs><linearGradient id="ta${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${g[0]}"/><stop offset="1" stop-color="${g[1]}"/></linearGradient></defs><rect width="46" height="46" rx="23" fill="url(#ta${i})"/></svg>`;
+const tHTML=testi.map((t,i)=>`
+  <div class="tcard"><div class="q">«${t.q}»</div>
+  <div class="who">${av(t.g,i)}<div><b>${t.n}</b><span>${t.r}</span></div></div></div>`).join('');
+$('#tm').innerHTML=tHTML+tHTML;
+
+/* Journal */
+const posts=[
+  {cat:'Гид',date:'2 июля 2026',t:'Как перестать портить V60: 5 частых ошибок',d:'Разбираем помол, температуру и технику залива на понятных примерах.',g:'linear-gradient(150deg,#c98a3e,#8f4a22)'},
+  {cat:'Ферма',date:'24 июня 2026',t:'Поездка в Иргачеффе: сезон урожая',d:'Как выглядит мытая обработка на высоте 1900 метров и почему это важно.',g:'linear-gradient(150deg,#6e6b4a,#2a1a11)'},
+  {cat:'Рецепт',date:'11 июня 2026',t:'Холодный колд-брю за 12 часов',d:'Простая пропорция и ноль оборудования — освежающий рецепт на лето.',g:'linear-gradient(150deg,#b5602f,#c98a3e)'},
+];
+$('#journal').innerHTML=posts.map((p,i)=>`
+  <article class="jcard reveal" data-d="${i}">
+    <div class="thumb"><div class="g" style="background:${p.g}"></div><span class="cat">${p.cat}</span></div>
+    <div class="date">${p.date}</div>
+    <h3>${p.t}</h3><p>${p.d}</p>
+  </article>`).join('');
+
+/* CTA form */
+$('#ctaForm').addEventListener('submit',()=>{
+  const btn=$('#ctaForm button'); btn.textContent='Готово! Проверьте почту ✦';
+  setTimeout(()=>btn.textContent='Забрать скидку',2600);
+});
+
+/* ============================================================
+   Reveal + counters
+   ============================================================ */
+function initReveal(){
+  const io=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }}),{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  $$('.reveal').forEach(el=>io.observe(el));
+}
+function animCount(el){
+  const target=parseFloat(el.dataset.count), suf=el.dataset.suffix||'';
+  const isYear=target>1900 && target<2100;
+  const dur=1500, start=performance.now();
+  (function step(now){
+    const p=Math.min((now-start)/dur,1), e=1-Math.pow(1-p,3), v=Math.round(target*e);
+    el.textContent=(isYear? v : v.toLocaleString('ru-RU'))+suf;
+    if(p<1) requestAnimationFrame(step); else el.textContent=(isYear?target:target.toLocaleString('ru-RU'))+suf;
+  })(performance.now());
+}
+function initCounters(){
+  const io=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isIntersecting){ animCount(e.target); io.unobserve(e.target); }}),{threshold:.6});
+  $$('[data-count]').forEach(el=>io.observe(el));
+}
+
+/* Safety: ensure loader never sticks */
+setTimeout(()=>{ const l=$('#loader'); if(l && !l.classList.contains('done')){ l.classList.add('done'); document.body.classList.remove('lock'); initReveal(); initCounters(); } }, reduce?1500:6000);
+
+/* Smooth anchor */
+$$('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
+  const id=a.getAttribute('href'); if(id.length<2) return;
+  const t=document.querySelector(id); if(!t) return;
+  e.preventDefault(); scrollTo({top:t.getBoundingClientRect().top+scrollY-70,behavior:'smooth'});
+}));
+})();
+</script>
+</body>
+</html>
