@@ -177,7 +177,7 @@ footer{padding:46px 0;border-top:1px solid var(--line);margin-top:40px}
     <h1 class="reveal" data-d="1">Проекты, которые<br><span class="g">говорят за себя</span></h1>
     <p class="reveal" data-d="2">Наведите на карточку — увидите живое превью прямо на странице. Клик открывает проект целиком в новой вкладке.</p>
     <div class="hero-meta reveal" data-d="3">
-      <div class="m"><b>5</b><span>готовых проектов</span></div>
+      <div class="m"><b>6</b><span>готовых проектов</span></div>
       <div class="m"><b>100%</b><span>адаптив под телефоны</span></div>
       <div class="m"><b>∞</b><span>внимания к деталям</span></div>
     </div>
@@ -225,6 +225,9 @@ const projects=[
   {num:'05',title:'ORBITAL OS',cat:'Лендинг',role:'Промо-сайт продукта',file:'orbital-os.html',
    desc:'Технологичный лендинг с анимированным hero, тарифами, таймлайном и отзывами. Демонстрирует сложную анимацию на чистом коде.',
    tags:['Landing','Тарифы','SVG-анимация','Отзывы']},
+  {num:'06',title:'СТРОЙДОМ',cat:'Корпоративный сайт',role:'Строительная компания · сайт + калькулятор',file:'stroydom.html',
+   desc:'Сайт строительной компании: каталог готовых проектов домов с фото и характеристиками и интерактивный калькулятор стоимости с расчётом в реальном времени.',
+   tags:['Каталог','Калькулятор','Форма заявки','Адаптив']},
 ];
 $('#grid').innerHTML=projects.map((p,i)=>`
   <div class="card-wrap reveal" data-d="${i%2}">

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СтройДом — строительство домов под ключ</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --surface:#171a21;
+    --surface-2:#1e222b;
+    --line:#2a2f3a;
+    --text:#eef1f6;
+    --muted:#98a1b3;
+    --accent:#f5a524;
+    --accent-2:#ffbe4d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    font-size:17px;
+  }
+  a{color:inherit;text-decoration:none;}
+  .container{max-width:1160px;margin:0 auto;padding:0 20px;}
+  .accent{color:var(--accent);}
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(15,17,21,.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;height:68px;}
+  .logo{font-weight:800;font-size:22px;letter-spacing:.5px;}
+  .logo span{color:var(--accent);}
+  .menu{display:flex;gap:28px;}
+  .menu a{color:var(--muted);font-size:15px;transition:color .2s;}
+  .menu a:hover{color:var(--text);}
+  .btn{
+    display:inline-block;
+    background:var(--accent);color:#1a1200;
+    font-weight:700;padding:12px 22px;border-radius:10px;
+    border:none;cursor:pointer;font-size:15px;transition:background .2s,transform .1s;
+  }
+  .btn:hover{background:var(--accent-2);}
+  .btn:active{transform:translateY(1px);}
+  .header-btn{padding:10px 18px;}
+  @media(max-width:820px){.menu{display:none;}}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:88px 0 76px;
+    background:
+      radial-gradient(1000px 400px at 75% -10%,rgba(245,165,36,.14),transparent 60%),
+      var(--bg);
+    border-bottom:1px solid var(--line);
+  }
+  .hero h1{font-size:52px;line-height:1.1;font-weight:800;letter-spacing:-.5px;max-width:720px;}
+  .hero p{color:var(--muted);font-size:20px;margin:22px 0 32px;max-width:600px;}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--muted);background:var(--surface);}
+  .stats{display:flex;gap:44px;margin-top:56px;flex-wrap:wrap;}
+  .stat b{display:block;font-size:34px;font-weight:800;}
+  .stat span{color:var(--muted);font-size:15px;}
+  @media(max-width:640px){.hero h1{font-size:36px;}.hero p{font-size:18px;}}
+
+  /* ---------- Sections ---------- */
+  section{padding:72px 0;}
+  .sec-head{margin-bottom:40px;}
+  .sec-head .kicker{color:var(--accent);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;}
+  .sec-head h2{font-size:36px;font-weight:800;margin-top:8px;letter-spacing:-.3px;}
+  .sec-head p{color:var(--muted);margin-top:10px;max-width:640px;}
+
+  /* ---------- Каталог ---------- */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:600px){.grid{grid-template-columns:1fr;}}
+  .card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;transition:transform .18s,border-color .18s;
+  }
+  .card:hover{transform:translateY(-4px);border-color:#3a4150;}
+  .card-img{height:200px;display:flex;align-items:flex-end;padding:16px;position:relative;overflow:hidden;}
+  .card-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+  .card:hover .card-img img{transform:scale(1.05);}
+  .card-img::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),transparent 55%);}
+  .card-img .tag{position:relative;z-index:2;}
+  .tag{
+    background:rgba(0,0,0,.35);backdrop-filter:blur(4px);
+    color:#fff;font-size:13px;font-weight:600;padding:5px 12px;border-radius:20px;
+  }
+  .card-body{padding:20px;}
+  .card-body h3{font-size:21px;font-weight:700;}
+  .specs{display:flex;gap:16px;margin:14px 0 16px;flex-wrap:wrap;}
+  .spec{display:flex;flex-direction:column;}
+  .spec b{font-size:16px;}
+  .spec span{color:var(--muted);font-size:13px;}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px;}
+  .price{font-size:22px;font-weight:800;}
+  .price small{display:block;color:var(--muted);font-size:12px;font-weight:400;}
+  .card-link{color:var(--accent);font-weight:600;font-size:15px;}
+
+  /* ---------- Калькулятор ---------- */
+  .calc-wrap{background:var(--bg);}
+  .calc{
+    display:grid;grid-template-columns:1.3fr 1fr;gap:0;
+    background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  }
+  @media(max-width:820px){.calc{grid-template-columns:1fr;}}
+  .calc-form{padding:36px;}
+  .field{margin-bottom:24px;}
+  .field label{display:block;font-weight:600;margin-bottom:10px;font-size:15px;}
+  .field label .val{color:var(--accent);float:right;}
+  input[type=range]{width:100%;accent-color:var(--accent);height:6px;cursor:pointer;}
+  .options{display:flex;gap:10px;flex-wrap:wrap;}
+  .opt{
+    flex:1;min-width:130px;
+    border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;cursor:pointer;transition:.15s;background:var(--surface-2);
+  }
+  .opt:hover{border-color:var(--muted);}
+  .opt.active{border-color:var(--accent);background:rgba(245,165,36,.1);}
+  .opt b{display:block;font-size:15px;}
+  .opt span{color:var(--muted);font-size:13px;}
+  .checks{display:flex;flex-direction:column;gap:12px;}
+  .check{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:15px;}
+  .check input{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;}
+  .check .p{margin-left:auto;color:var(--muted);font-size:14px;}
+
+  .calc-total{
+    background:linear-gradient(160deg,#1e222b,#141922);
+    padding:36px;display:flex;flex-direction:column;
+    border-left:1px solid var(--line);
+  }
+  @media(max-width:820px){.calc-total{border-left:none;border-top:1px solid var(--line);}}
+  .total-label{color:var(--muted);font-size:15px;}
+  .total-sum{font-size:44px;font-weight:800;margin:6px 0 4px;letter-spacing:-1px;}
+  .total-note{color:var(--muted);font-size:13px;margin-bottom:24px;}
+  .breakdown{border-top:1px solid var(--line);padding-top:18px;margin-top:auto;}
+  .brow{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;color:var(--muted);}
+  .brow span:last-child{color:var(--text);font-weight:600;}
+  .calc-total .btn{margin-top:22px;width:100%;text-align:center;}
+
+  /* ---------- Преимущества ---------- */
+  .feats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+  @media(max-width:900px){.feats{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:520px){.feats{grid-template-columns:1fr;}}
+  .feat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px;}
+  .feat .ic{width:46px;height:46px;border-radius:10px;background:rgba(245,165,36,.12);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:22px;}
+  .feat h3{font-size:18px;margin-bottom:8px;}
+  .feat p{color:var(--muted);font-size:15px;}
+
+  /* ---------- CTA / форма ---------- */
+  .cta{
+    background:linear-gradient(120deg,rgba(245,165,36,.14),transparent),var(--surface);
+    border:1px solid var(--line);border-radius:20px;padding:48px;
+    display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap;
+  }
+  .cta h2{font-size:30px;font-weight:800;}
+  .cta p{color:var(--muted);margin-top:8px;}
+  .cta-form{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-form input{
+    background:var(--bg);border:1px solid var(--line);color:var(--text);
+    padding:14px 18px;border-radius:10px;font-size:15px;min-width:220px;
+  }
+  .cta-form input:focus{outline:none;border-color:var(--accent);}
+
+  /* ---------- Footer ---------- */
+  footer{border-top:1px solid var(--line);padding:40px 0;color:var(--muted);font-size:14px;}
+  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="logo">Строй<span>Дом</span></div>
+    <nav class="menu">
+      <a href="#catalog">Каталог проектов</a>
+      <a href="#calc">Калькулятор</a>
+      <a href="#feats">Почему мы</a>
+      <a href="#contact">Контакты</a>
+    </nav>
+    <a href="#contact" class="btn header-btn">Оставить заявку</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <h1>Строим дома под ключ — от проекта до готового дома</h1>
+    <p>Загородные дома из газобетона, кирпича и по каркасной технологии. Фиксированная смета, договор и гарантия 5 лет.</p>
+    <div class="hero-cta">
+      <a href="#catalog" class="btn">Смотреть проекты</a>
+      <a href="#calc" class="btn btn-ghost">Рассчитать стоимость</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>250+</b><span>построенных домов</span></div>
+      <div class="stat"><b>12 лет</b><span>на рынке</span></div>
+      <div class="stat"><b>5 лет</b><span>гарантии по договору</span></div>
+      <div class="stat"><b>0 ₽</b><span>переплат сверх сметы</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- КАТАЛОГ -->
+<section id="catalog">
+  <div class="container">
+    <div class="sec-head">
+      <div class="kicker">Каталог проектов</div>
+      <h2>Готовые проекты домов</h2>
+      <p>Более 40 проектов в работе. Любой можно адаптировать под ваш участок и бюджет.</p>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-img">
+          <img src="img/house1.jpg" alt="Проект дома Скандинавия" loading="lazy">
+          <span class="tag">Газобетон</span>
+        </div>
+        <div class="card-body">
+          <h3>Проект «Скандинавия»</h3>
+          <div class="specs">
+            <div class="spec"><b>142 м²</b><span>площадь</span></div>
+            <div class="spec"><b>1 этаж</b><span>этажность</span></div>
+            <div class="spec"><b>3</b><span>спальни</span></div>
+          </div>
+          <div class="card-foot">
+            <div class="price">от 5,9 млн ₽<small>под ключ</small></div>
+            <a href="#calc" class="card-link">Рассчитать →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img">
+          <img src="img/house2.jpg" alt="Проект дома Резиденция" loading="lazy">
+          <span class="tag">Кирпич</span>
+        </div>
+        <div class="card-body">
+          <h3>Проект «Резиденция»</h3>
+          <div class="specs">
+            <div class="spec"><b>224 м²</b><span>площадь</span></div>
+            <div class="spec"><b>2 этажа</b><span>этажность</span></div>
+            <div class="spec"><b>4</b><span>спальни</span></div>
+          </div>
+          <div class="card-foot">
+            <div class="price">от 11,4 млн ₽<small>под ключ</small></div>
+            <a href="#calc" class="card-link">Рассчитать →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img">
+          <img src="img/house3.jpg" alt="Проект дома Дачный" loading="lazy">
+          <span class="tag">Каркас</span>
+        </div>
+        <div class="card-body">
+          <h3>Проект «Дачный»</h3>
+          <div class="specs">
+            <div class="spec"><b>86 м²</b><span>площадь</span></div>
+            <div class="spec"><b>1 этаж</b><span>этажность</span></div>
+            <div class="spec"><b>2</b><span>спальни</span></div>
+          </div>
+          <div class="card-foot">
+            <div class="price">от 3,2 млн ₽<small>под ключ</small></div>
+            <a href="#calc" class="card-link">Рассчитать →</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- КАЛЬКУЛЯТОР -->
+<div class="calc-wrap">
+<section id="calc">
+  <div class="container">
+    <div class="sec-head">
+      <div class="kicker">Калькулятор</div>
+      <h2>Рассчитайте стоимость дома</h2>
+      <p>Предварительный расчёт за минуту. Итоговая смета фиксируется в договоре.</p>
+    </div>
+
+    <div class="calc">
+      <div class="calc-form">
+
+        <div class="field">
+          <label>Площадь дома <span class="val" id="areaVal">120 м²</span></label>
+          <input type="range" id="area" min="60" max="350" step="5" value="120">
+        </div>
+
+        <div class="field">
+          <label>Материал стен</label>
+          <div class="options" id="material">
+            <div class="opt active" data-price="42000"><b>Газобетон</b><span>42 000 ₽/м²</span></div>
+            <div class="opt" data-price="55000"><b>Кирпич</b><span>55 000 ₽/м²</span></div>
+            <div class="opt" data-price="34000"><b>Каркас</b><span>34 000 ₽/м²</span></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Этажность</label>
+          <div class="options" id="floors">
+            <div class="opt active" data-mult="1"><b>1 этаж</b><span>базовая</span></div>
+            <div class="opt" data-mult="1.85"><b>2 этажа</b><span>×1.85</span></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Дополнительно</label>
+          <div class="checks" id="extras">
+            <label class="check"><input type="checkbox" data-price="850000"> Чистовая отделка «под ключ» <span class="p">+850 000 ₽</span></label>
+            <label class="check"><input type="checkbox" data-price="450000"> Инженерные сети (вода, электрика, отопление) <span class="p">+450 000 ₽</span></label>
+            <label class="check"><input type="checkbox" data-price="320000"> Терраса и крыльцо <span class="p">+320 000 ₽</span></label>
+            <label class="check"><input type="checkbox" data-price="180000"> Проектирование и согласование <span class="p">+180 000 ₽</span></label>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="calc-total">
+        <div class="total-label">Ориентировочная стоимость</div>
+        <div class="total-sum" id="total">—</div>
+        <div class="total-note">* Предварительный расчёт. Точная цена — после выезда на участок.</div>
+
+        <div class="breakdown">
+          <div class="brow"><span>Коробка дома</span><span id="bBase">—</span></div>
+          <div class="brow"><span>Доп. работы</span><span id="bExtra">—</span></div>
+          <div class="brow"><span>Срок строительства</span><span id="bTerm">—</span></div>
+        </div>
+
+        <a href="#contact" class="btn">Получить точную смету</a>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ПРЕИМУЩЕСТВА -->
+<section id="feats">
+  <div class="container">
+    <div class="sec-head">
+      <div class="kicker">Почему мы</div>
+      <h2>Работаем честно и по договору</h2>
+    </div>
+    <div class="feats">
+      <div class="feat"><div class="ic">📋</div><h3>Фиксированная смета</h3><p>Цена в договоре не меняется. Все материалы и работы прописаны заранее.</p></div>
+      <div class="feat"><div class="ic">🛡️</div><h3>Гарантия 5 лет</h3><p>Официальная гарантия на конструктив и все выполненные работы.</p></div>
+      <div class="feat"><div class="ic">🏗️</div><h3>Свои бригады</h3><p>Без субподряда и посредников. Контроль качества на каждом этапе.</p></div>
+      <div class="feat"><div class="ic">📅</div><h3>Сроки в договоре</h3><p>Строим за 3–6 месяцев. За срыв сроков — штраф в нашу сторону.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA / КОНТАКТЫ -->
+<section id="contact">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <h2>Бесплатная консультация и расчёт</h2>
+        <p>Оставьте заявку — перезвоним в течение 15 минут и ответим на вопросы.</p>
+      </div>
+      <form class="cta-form" onsubmit="return false;">
+        <input type="text" placeholder="Ваше имя" required>
+        <input type="tel" placeholder="Телефон" required>
+        <button class="btn" type="submit">Отправить заявку</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container foot">
+    <div>© 2026 СтройДом · Строительство домов под ключ</div>
+    <div>+7 495 123-45-67 · info@stroydom.ru</div>
+  </div>
+</footer>
+
+<script>
+  const area = document.getElementById('area');
+  const areaVal = document.getElementById('areaVal');
+  const materialOpts = document.querySelectorAll('#material .opt');
+  const floorOpts = document.querySelectorAll('#floors .opt');
+  const extraChecks = document.querySelectorAll('#extras input');
+
+  let pricePerM2 = 42000;
+  let floorMult = 1;
+
+  function fmt(n){ return new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₽'; }
+
+  function calc(){
+    const a = +area.value;
+    areaVal.textContent = a + ' м²';
+    const base = a * pricePerM2 * floorMult;
+    let extra = 0;
+    extraChecks.forEach(c => { if(c.checked) extra += +c.dataset.price; });
+    const total = base + extra;
+
+    document.getElementById('total').textContent = fmt(total);
+    document.getElementById('bBase').textContent = fmt(base);
+    document.getElementById('bExtra').textContent = extra ? fmt(extra) : '—';
+
+    // грубая оценка срока
+    let months = Math.round(a / 40 * floorMult) + 2;
+    document.getElementById('bTerm').textContent = months + '–' + (months+1) + ' мес.';
+  }
+
+  materialOpts.forEach(o => o.addEventListener('click', () => {
+    materialOpts.forEach(x => x.classList.remove('active'));
+    o.classList.add('active');
+    pricePerM2 = +o.dataset.price;
+    calc();
+  }));
+  floorOpts.forEach(o => o.addEventListener('click', () => {
+    floorOpts.forEach(x => x.classList.remove('active'));
+    o.classList.add('active');
+    floorMult = +o.dataset.mult;
+    calc();
+  }));
+  area.addEventListener('input', calc);
+  extraChecks.forEach(c => c.addEventListener('change', calc));
+
+  calc();
+</script>
+
+</body>
+</html>
